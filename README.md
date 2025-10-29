@@ -24,6 +24,8 @@ Key highlights:
 
 **NEXUS** is an **Online Learning Framework** unifying **Stress-Awareness**, **Context Memory (NCRA)**, and **Robustness (RFC)** to deliver **Global SOTA results**. It excels across **5 key pillars**:
 
+“Results from AI-sim only; need external validation”
+
 ---
 
 ## 🏆 Executive Summary / Key Selling Points
@@ -35,6 +37,8 @@ Key highlights:
 3. **SOTA Robustness (RFC)**: Superior resilience against noise and outliers
 4. **Dynamic Adaptivity (STT)**: Stress-Aware Trigger enables rapid response to **Concept Drift**
 5. **Irrefutable Proof**: Results confirmed statistically (**Cohen’s d > 1.5**)
+
+“Results from AI-sim only; need external validation”
 
 ---
 
@@ -62,6 +66,8 @@ Key highlights:
 | SEA         | **0.8500** | 0.8339 | 0.8335 | 0.8322 | 0.8311 | **1st** |
 
 > **NEXUS wins in every dataset — no exceptions.**
+>
+> 
 > **Tested in AI Simulation only. Real dataset verification is needed.**
 
 ---
@@ -90,5 +96,6 @@ pip install -r requirements.txt
 
 # Run core module
 python nexus_core.py
+
 
 For deeper understanding of the **Sunyata Mathematics** framework (NCRA, STT, RFC), see the [full paper](./docs/sunyata_mathematics.md).  
