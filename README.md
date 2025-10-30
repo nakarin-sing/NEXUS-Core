@@ -1,4 +1,4 @@
-# AwakenAI NEXUS Core v3.0.0 — Global SOTA Continual Learning System
+# AwakenAI NEXUS Core v4.0.0 — Global SOTA Continual Learning System
 
 [![Status](https://img.shields.io/badge/Status-GLOBAL%20SOTA-brightgreen)](./docs/executive_summary.md)
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
@@ -30,7 +30,7 @@ Key highlights:
 
 ## 🏆 Executive Summary / Key Selling Points
 
-**NEXUS Core v3.0.0** is an online learning system proven to outperform **4 SOTA Baselines** in all simulated tests:
+**NEXUS Core** is an online learning system proven to outperform **4 SOTA Baselines** in all simulated tests:
 
 1. **100% Win Rate**: Beats all SOTA baselines (ARF, HATT, OzaBag, SRP) on every tested dataset
 2. **SOTA Memory (NCRA)**: Solves catastrophic forgetting via **Neural Context Recall Architecture**
@@ -99,4 +99,5 @@ python nexus_core.py
 
 
 For deeper understanding of the **Sunyata Mathematics** framework (NCRA, STT, RFC), see the [full paper](./docs/sunyata_mathematics.md).  
+
 
