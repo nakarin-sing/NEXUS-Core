@@ -1,7 +1,7 @@
 # tests/test_nexus.py
 import pytest
 import numpy as np
-from nexus import NEXUS_River, CONFIG
+from nexus_core import NEXUS_River, CONFIG
 from pathlib import Path
 import tempfile
 import pickle
