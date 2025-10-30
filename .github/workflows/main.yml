@@ -14,41 +14,40 @@ jobs:
     - name: 📥 Checkout Repository
       uses: actions/checkout@v4
       
-    - name: ⚙️ Install System Dependencies (For Source Compilation)
+    - name: ⚙️ Install System Dependencies (ABSOLUTE HARDENED BUILD)
       run: |
         sudo apt-get update
-        # ติดตั้ง Compiler และ Libraries ที่จำเป็นสำหรับการ Build SciPy, Scikit-learn, และ River
-        sudo apt-get install -y build-essential gfortran libblas-dev liblapack-dev
+        # 1. การแก้ไข: เพิ่ม python3-dev และ Compiler ที่ SciPy/Scikit-learn ต้องการ
+        sudo apt-get install -y build-essential gfortran libblas-dev liblapack-dev python3-dev
         
     - name: 🐍 Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11' 
         
-    - name: ⚙️ Install Dependencies (The NEXUS Stack)
+    - name: ⚙️ Install Core Dependencies (Source Compiling NumPy, SciPy, Scikit-learn)
       run: |
         python -m pip install --upgrade pip
         
-        # 1. ติดตั้ง NumPy เวอร์ชันที่เสถียร (1.24.4)
+        # ติดตั้ง NumPy เวอร์ชันที่เสถียร (1.24.4)
         pip install 'numpy==1.24.4'
         
-        # 2. ติดตั้ง Dependencies ที่เหลือ พร้อมคำสั่งบังคับ Build ใหม่ทั้งหมด
-        # --no-binary :all: บังคับ Compile โดยใช้ System Dependencies ที่ติดตั้งไว้แล้ว
-        pip install pandas 'river==0.19.0' scikit-learn matplotlib seaborn tqdm psutil pytest typing_extensions --no-cache-dir --no-binary :all:
+        # 2. การแก้ไข: บังคับติดตั้ง SciPy และ Scikit-learn จาก Source ก่อน Dependencies อื่น
+        pip install scipy scikit-learn --no-cache-dir --no-binary :all:
+        
+        # 3. การแก้ไข: ติดตั้ง Dependencies ที่เหลือโดยไม่ใช้ --no-binary :all:
+        pip install pandas 'river==0.19.0' matplotlib seaborn tqdm psutil pytest typing_extensions --no-cache-dir
         
     - name: 🛠️ Set Python Path for Module Discovery
       run: |
-        # เพื่อให้ Pytest ใน tests/ หา nexus_core.py ใน root ได้
         echo "PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH" >> $GITHUB_ENV
         
     - name: 🧪 Run Unit Tests (Validate ABSOLUTE FLAWLESS State)
       run: |
-        # รัน Pytest โดยคาดว่า tests/test_nexus.py และ nexus_core.py ใช้ river.proba
         pytest tests/test_nexus.py
         
     - name: 🥇 Run NEXUS Benchmark (Prove SOTA Performance)
       run: |
-        # รันไฟล์หลักที่รวมโค้ดทั้งหมดแล้ว
         python nexus_core.py
         
     - name: 📂 Upload Results Artifacts
