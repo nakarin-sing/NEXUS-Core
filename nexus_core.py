@@ -77,7 +77,8 @@ try:
         stderr=subprocess.DEVNULL
     ).decode().strip()
 except Exception:
-    git_hash = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:8]
+    # FIX: Use __file__ instead of file
+    git_hash = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:8] 
 
 CONFIG = Config(git_hash=git_hash)
 Path(CONFIG.results_dir).mkdir(exist_ok=True)
@@ -425,5 +426,5 @@ def main() -> None:
     print(summary.to_markdown())
     print("="*80)
 
-if __name__ == "__main__":
+if __name__ == "__main__": # FIX: Changed from 'if name == "main":'
     main()
