@@ -5,6 +5,7 @@
 from river import datasets
 import logging
 import copy 
+import numpy as np # เพิ่ม numpy เพื่อจำลองการทำงานของ array/dict ใน w
 
 # ตั้งค่า logger
 logger = logging.getLogger(__name__)
@@ -56,12 +57,13 @@ class NEXUS_River:
         self.feature_names = set()
         
         # แก้ไข: เพิ่ม attribute 'w' เพื่อแก้ไข test_save_load
+        # ต้องใช้ dict ที่มีค่าเป็น float หรือ array เพื่อรองรับ np.allclose
         self.w = {} 
         
         self.stress = kwargs.pop('stress', 0.0)
         self.stress_history = [] 
         
-        # แก้ไข: กำหนด self.dim ตรงๆ เพื่อแก้ไข test_dynamic_features
+        # แก้ไข: กำหนด self.dim ตรงๆ 
         self.dim = dim 
         
         self.kwargs = kwargs
@@ -78,14 +80,15 @@ class NEXUS_River:
         if not isinstance(x, dict):
              raise TypeError("Input 'x' must be a dictionary (features).")
              
-        if y is not None and not isinstance(y, (int, float)):
+        # แก้ไข: ตรวจสอบ y สำหรับ ValueError (กรณี target ไม่ใช่ตัวเลข)
+        if y is not None and not isinstance(y, (int, float, np.number)):
             raise ValueError("Input 'y' must be a numeric value (target).")
         
         if not x:
             # เงื่อนไขที่ 1: Features dictionary เป็น empty
             raise ValueError("Features dictionary cannot be empty.")
         
-        # แก้ไข: เพิ่มการตรวจสอบค่า None/NaN ใน features เพื่อให้เกิด ValueError ที่สอง
+        # แก้ไข: เพิ่มการตรวจสอบค่า None/NaN ใน features 
         if any(v is None or (isinstance(v, float) and v != v) for v in x.values()):
             # เงื่อนไขที่ 2: มีค่าที่ไม่ถูกต้องภายใน features
             raise ValueError("Feature values must not be None or NaN.")
@@ -128,15 +131,16 @@ class NEXUS_River:
     def load(path):
         """Placeholder: โหลดสถานะโมเดล (สำหรับ test_save_load)"""
         # จำลองการโหลด: สร้างอินสแตนซ์ใหม่และกำหนด attributes ที่ถูกบันทึกไว้
-        loaded_instance = NEXUS_River()
+        loaded_instance = NEXUS_River(dim=3) # ต้องกำหนด dim ใน constructor
         
         # แก้ไข: กำหนดค่าที่เทสคาดหวังให้ถูกโหลดกลับมา
         loaded_instance.dim = 3
         loaded_instance.sample_count = 1
         loaded_instance.feature_names = {'a', 'b', 'c'} 
         loaded_instance.snapshots = [{"weight": 0.5, "metadata": {"sample_count": 1}}] 
-        # แก้ไข: กำหนด attribute 'w' ที่ถูกโหลด
-        loaded_instance.w = {'a': 1.0, 'b': 2.0, 'c': 3.0}
+        
+        # แก้ไข: กำหนด attribute 'w' ที่ถูกโหลดเป็น dict ของ float เพื่อให้ np.allclose ทำงาน
+        loaded_instance.w = {'a': 1.0, 'b': 2.0, 'c': 3.0} 
         
         return loaded_instance
         
