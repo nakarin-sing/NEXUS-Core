@@ -1,0 +1,45 @@
+name: NEXUS Core CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11' # ใช้เวอร์ชันที่ทันสมัย
+        
+    - name: ⚙️ Install Dependencies (The NEXUS Stack)
+      run: |
+        python -m pip install --upgrade pip
+        # ติดตั้ง numpy, pandas, river, scikit-learn (สำหรับ datasets/baselines), matplotlib, seaborn, tqdm, psutil, pytest
+        pip install numpy pandas river scikit-learn matplotlib seaborn tqdm psutil pytest typing_extensions
+        
+    - name: 🧪 Run Unit Tests (Validate ABSOLUTE FLAWLESS State)
+      run: |
+        # รัน pytest จาก Folder tests
+        pytest tests/test_nexus.py
+        
+    - name: 🥇 Run NEXUS Benchmark (Prove SOTA Performance)
+      run: |
+        # รัน main function เพื่อสร้าง results/ และพิมพ์ summary
+        python nexus.py
+        
+    - name: 📂 Upload Results Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nexus-benchmark-results-${{ github.sha }}
+        path: results/ # อัพโหลด folder results ทั้งหมด (csv, json, plot.png)
+        if-no-files-found: error
+        retention-days: 7
+        
