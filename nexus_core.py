@@ -15,7 +15,8 @@ import seaborn as sns
 import pandas as pd
 from river import datasets, metrics, ensemble, tree, preprocessing
 from river.base import Classifier
-from river.probabilistic import Bernoulli # <-- IMPORT PATH CORRECTED
+# Removed: from river.probabilistic import Bernoulli (due to ModuleNotFoundError)
+
 import json
 from collections import deque
 from tqdm import tqdm
@@ -33,6 +34,17 @@ from typing_extensions import Self
 import subprocess
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
+
+# ------------------ MOCK CLASS FOR RIVER COMPATIBILITY ------------------
+class Bernoulli(dict):
+    """
+    Mock class replacing river.probabilistic.Bernoulli to ensure compatibility 
+    across different River versions (e.g., v0.15 where the module is missing).
+    This structure is required by the River API for predict_proba_one.
+    """
+    def __init__(self, p: float):
+        """Initializes with probabilities for True (p) and False (1-p)."""
+        super().__init__({True: float(p), False: float(1.0 - p)})
 
 # ------------------ CONSTANTS ------------------
 STRESS_HIGH: Final[float] = 0.15
