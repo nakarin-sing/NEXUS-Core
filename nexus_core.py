@@ -16,7 +16,7 @@ import seaborn as sns
 import pandas as pd
 from river import datasets, metrics, ensemble, tree, preprocessing
 from river.base import Classifier
-from river import proba # <--- FINAL FIX v5: Using module import (proba.Bernoulli) for universal River compatibility.
+from river import proba 
 #import jsjsonrom collections import deque
 import json
 from collections import deque
@@ -61,15 +61,15 @@ class Config:
     dim: Optional[int] = None
     max_snapshots: int = 5
     stress_history_len: int = 1000
-    # FIX V9: Replaced all deprecated datasets (Airlines, Covertype) with Phishing and Mushroom for River v0.18+ compatibility.
     datasets: Tuple[str, ...] = ("Phishing", "Mushroom", "Electricity", "SEA") 
     results_dir: str = "results"
     version: str = "4.0.0"
     verbose: bool = True
     max_samples: int = MAX_SAMPLES
     git_hash: str = "unknown"
-    enable_ncra: bool = true
-    enable_rfc: bool = true
+    # FIX V10: Corrected Python boolean literals from 'true' to 'True'
+    enable_ncra: bool = True 
+    enable_rfc: bool = True
     weight_decay: float = WEIGHT_DECAY
 
 try:
@@ -78,7 +78,6 @@ try:
         stderr=subprocess.DEVNULL
     ).decode().strip()
 except Exception:
-    # FIX: Use __file__ instead of file
     git_hash = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:8] 
 
 CONFIG = Config(git_hash=git_hash)
@@ -338,7 +337,7 @@ BASELINES: Dict[str, Callable[[], Any]] = {
 # ------------------ DATASETS ------------------
 DATASET_MAP = {
     "Phishing": datasets.Phishing, 
-    "Mushroom": datasets.Mushroom, # Replaced Covertype for River v0.18+ compatibility
+    "Mushroom": datasets.Mushroom, 
     "Electricity": datasets.Elec2,
     "SEA": datasets.SEA,
 }
@@ -427,5 +426,5 @@ def main() -> None:
     print(summary.to_markdown())
     print("="*80)
 
-if __name__ == "__main__": # FIX: Changed from 'if name == "main":'
+if __name__ == "__main__":
     main()
