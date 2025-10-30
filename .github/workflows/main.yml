@@ -17,8 +17,8 @@ jobs:
     - name: ⚙️ Install System Dependencies (ABSOLUTE HARDENED BUILD)
       run: |
         sudo apt-get update
-        # 1. การแก้ไข: เพิ่ม python3-dev และ Compiler ที่ SciPy/Scikit-learn ต้องการ
-        sudo apt-get install -y build-essential gfortran libblas-dev liblapack-dev python3-dev
+        # การแก้ไข: เพิ่ม libopenblas-dev เพื่อแก้ปัญหา SciPy Meson Build
+        sudo apt-get install -y build-essential gfortran libblas-dev liblapack-dev python3-dev libopenblas-dev 
         
     - name: 🐍 Set up Python
       uses: actions/setup-python@v5
@@ -32,10 +32,10 @@ jobs:
         # ติดตั้ง NumPy เวอร์ชันที่เสถียร (1.24.4)
         pip install 'numpy==1.24.4'
         
-        # 2. การแก้ไข: บังคับติดตั้ง SciPy และ Scikit-learn จาก Source ก่อน Dependencies อื่น
+        # บังคับติดตั้ง SciPy และ Scikit-learn จาก Source ก่อน Dependencies อื่น
         pip install scipy scikit-learn --no-cache-dir --no-binary :all:
         
-        # 3. การแก้ไข: ติดตั้ง Dependencies ที่เหลือโดยไม่ใช้ --no-binary :all:
+        # ติดตั้ง Dependencies ที่เหลือโดยไม่ใช้ --no-binary :all:
         pip install pandas 'river==0.19.0' matplotlib seaborn tqdm psutil pytest typing_extensions --no-cache-dir
         
     - name: 🛠️ Set Python Path for Module Discovery
