@@ -16,7 +16,7 @@ import seaborn as sns
 import pandas as pd
 from river import datasets, metrics, ensemble, tree, preprocessing
 from river.base import Classifier
-from river.stats json Bernoulli
+from river.stats import Bernoulli
 import jsjsonrom collections import deque
 from tqdm import tqdm
 from typing import Dict, Any, Iterable, Optional, Callable, Tuple, List, Final, Literal
@@ -425,6 +425,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
 
 
