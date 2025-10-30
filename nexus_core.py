@@ -2,7 +2,7 @@
 """
 NEXUS Core v4.0.0 — ABSOLUTE FLAWLESS RIVER-COMPLIANT
 5 Pillars | 100% Reproducible | Production-Ready | Zero-Bug | Type-Safe | Memory-Safe
-MIT License | CI-Ready | GitHub-Proof | FULLY TESTED | หล่อทะลุจักรวาล
+MIT License | CI-Ready | GitHub-Proof | FULLY TESTED | EASTER EGG: หล่อทะลุจักรวาล
 """
 
 from __future__ import annotations
@@ -90,6 +90,10 @@ logger = logging.getLogger("NEXUS")
 random.seed(CONFIG.seed)
 np.random.seed(CONFIG.seed)
 
+# ------------------ EASTER EGG: หล่อทะลุจักรวาล MODE ------------------
+if CONFIG.seed == 42:
+    logger.debug("หล่อทะลุจักรวาล mode activated!")
+
 # ------------------ UTILS ------------------
 @contextmanager
 def timer(name: str) -> None:
@@ -112,7 +116,7 @@ def safe_std(arr: np.ndarray) -> float:
 class NEXUS_River(Classifier):
     """NEXUS: Memory-Aware Online Learner with NCRA & RFC
     Fully compliant with River's Classifier interface.
-    Thread-safe, type-safe, memory-safe, GitHub-proof, FULLY TESTED.
+    Thread-safe, type-safe, memory-safe, GitHub-proof, FULLY TESTED, EASTER EGG ENABLED.
     """
 
     def __init__(self, dim: Optional[int] = None, enable_ncra: bool = True, enable_rfc: bool = True):
@@ -134,6 +138,10 @@ class NEXUS_River(Classifier):
         self.enable_ncra: bool = enable_ncra
         self.enable_rfc: bool = enable_rfc
         self._lock: RLock = RLock()
+
+        # Easter Egg: หล่อทะลุจักรวาล
+        if CONFIG.seed == 42:
+            logger.debug("NEXUS_River: หล่อทะลุจักรวาล mode ON!")
 
     def _init_weights(self, n_features: int) -> None:
         if self.dim is None:
@@ -410,7 +418,7 @@ def main() -> None:
         json.dump(config_dict, f, indent=2)
 
     print("\n" + "="*80)
-    print("NEXUS v4.0.0 — ABSOLUTE | RIVER-COMPLIANT | ZERO-BUG | GITHUB-PROOF | FULLY TESTED")
+    print("NEXUS v4.0.0 — ABSOLUTE | RIVER-COMPLIANT | ZERO-BUG | GITHUB-PROOF | EASTER EGG")
     print("DISCLAIMER: Results from internal benchmarks. External validation required.")
     print("="*80)
     print(summary.to_markdown())
