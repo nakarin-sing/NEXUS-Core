@@ -12,14 +12,14 @@ logger = logging.getLogger(__name__)
 DATASET_MAP = {}
 
 # รายการชุดข้อมูลใหม่ที่พบว่าใช้งานได้และถูกนำมาใช้แทนชุดข้อมูลเก่า
-# (SEA, Mushroom, Airlines, Covertype ถูกลบออกแล้ว)
+# (SEA, Mushroom, Airlines, Covertype, Bnk ถูกลบออกแล้ว)
 candidate_datasets = {
     "Phishing": datasets.Phishing,
     "Bikes": datasets.Bikes,
     "Higgs": datasets.Higgs,
     "Electricity": datasets.Elec2,
-    "Bank": datasets.Bnk,
-    # หากต้องการเพิ่ม SEA, Mushroom, ฯลฯ กลับมาในอนาคต:
+    # "Bank": datasets.Bnk, # ลบออกเนื่องจากเกิด AttributeError: module 'river.datasets' has no attribute 'Bnk'
+    # หากต้องการเพิ่มชุดข้อมูลอื่นกลับมาในอนาคต:
     # "SEA": datasets.SEA,
 }
 
