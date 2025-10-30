@@ -22,8 +22,13 @@ jobs:
     - name: ⚙️ Install Dependencies (The NEXUS Stack)
       run: |
         python -m pip install --upgrade pip
-        # PIN River Version ให้เป็น 0.19.0 เพื่อความเสถียรและรองรับ river.proba.Bernoulli
-        pip install numpy pandas 'river==0.19.0' scikit-learn matplotlib seaborn tqdm psutil pytest typing_extensions
+        
+        # 1. ติดตั้ง NumPy เวอร์ชันที่เสถียร (1.24.4) ก่อน เพื่อป้องกันปัญหา Binary Incompatibility
+        pip install 'numpy==1.24.4'
+        
+        # 2. ติดตั้ง River (0.19.0) และ Dependencies ที่เหลือ
+        # River จะถูก Compile โดยใช้ NumPy 1.24.4 ที่ถูกติดตั้งไว้แล้ว
+        pip install pandas 'river==0.19.0' scikit-learn matplotlib seaborn tqdm psutil pytest typing_extensions
         
     - name: 🛠️ Set Python Path for Module Discovery
       run: |
