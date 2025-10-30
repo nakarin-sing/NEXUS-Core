@@ -16,7 +16,7 @@ import seaborn as sns
 import pandas as pd
 from river import datasets, metrics, ensemble, tree, preprocessing
 from river.base import Classifier
-from river.proba import Bernoulli  # <--- FINAL FIX: Back to river.proba
+from river.stats import Bernoulli  # <--- FINAL FIX v2: Changed from river.proba to river.stats
 #import jsjsonrom collections import deque
 import json
 from collections import deque
@@ -108,7 +108,7 @@ def safe_div(a: float, b: float) -> float:
     return a / (b + EPS)
 
 def safe_exp(x: float) -> float:
-    return np.exp(np.clip(x, -20.0, 20.0))
+    return 1.0 / (1.0 + np.exp(np.clip(-x, -20.0, 20.0))) # Safe sigmoid
 
 def safe_std(arr: np.ndarray) -> float:
     return max(float(np.std(arr, ddof=0)), STD_EPS)
@@ -153,7 +153,7 @@ class NEXUS_River(Classifier):
             self.rfc_w = np.random.normal(0, scale, self.dim).astype(NUMPY_FLOAT)
 
     def _sigmoid(self, x: float) -> float:
-        return 1.0 / (1.0 + safe_exp(-x))
+        return 1.0 / (1.0 + np.exp(np.clip(-x, -20.0, 20.0)))
 
     def _safe_norm(self, arr: np.ndarray) -> float:
         norm = float(np.linalg.norm(arr))
