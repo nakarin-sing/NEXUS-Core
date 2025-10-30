@@ -14,6 +14,12 @@ jobs:
     - name: 📥 Checkout Repository
       uses: actions/checkout@v4
       
+    - name: ⚙️ Install System Dependencies (For Source Compilation)
+      run: |
+        sudo apt-get update
+        # ติดตั้ง Compiler และ Libraries ที่จำเป็นสำหรับการ Build SciPy, Scikit-learn, และ River
+        sudo apt-get install -y build-essential gfortran libblas-dev liblapack-dev
+        
     - name: 🐍 Set up Python
       uses: actions/setup-python@v5
       with:
@@ -27,8 +33,7 @@ jobs:
         pip install 'numpy==1.24.4'
         
         # 2. ติดตั้ง Dependencies ที่เหลือ พร้อมคำสั่งบังคับ Build ใหม่ทั้งหมด
-        # --no-binary :all: บังคับให้ River ถูก Compile ใหม่ด้วย NumPy 1.24.4 ที่ถูกต้อง
-        # --no-cache-dir ป้องกันการนำ Library เก่าที่ Corrupt มาใช้ซ้ำ
+        # --no-binary :all: บังคับ Compile โดยใช้ System Dependencies ที่ติดตั้งไว้แล้ว
         pip install pandas 'river==0.19.0' scikit-learn matplotlib seaborn tqdm psutil pytest typing_extensions --no-cache-dir --no-binary :all:
         
     - name: 🛠️ Set Python Path for Module Discovery
