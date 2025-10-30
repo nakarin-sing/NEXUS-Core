@@ -61,15 +61,15 @@ class Config:
     dim: Optional[int] = None
     max_snapshots: int = 5
     stress_history_len: int = 1000
-    # FIX: Changed "Airlines" to "Phishing" due to River compatibility issues.
-    datasets: Tuple[str, ...] = ("Phishing", "Covertype", "Electricity", "SEA") 
+    # FIX V9: Replaced all deprecated datasets (Airlines, Covertype) with Phishing and Mushroom for River v0.18+ compatibility.
+    datasets: Tuple[str, ...] = ("Phishing", "Mushroom", "Electricity", "SEA") 
     results_dir: str = "results"
     version: str = "4.0.0"
     verbose: bool = True
     max_samples: int = MAX_SAMPLES
     git_hash: str = "unknown"
-    enable_ncra: bool = True
-    enable_rfc: bool = True
+    enable_ncra: bool = true
+    enable_rfc: bool = true
     weight_decay: float = WEIGHT_DECAY
 
 try:
@@ -337,9 +337,8 @@ BASELINES: Dict[str, Callable[[], Any]] = {
 
 # ------------------ DATASETS ------------------
 DATASET_MAP = {
-    # FIX: Changed datasets.Airlines to datasets.Phishing for River compatibility
     "Phishing": datasets.Phishing, 
-    "Covertype": datasets.Covertype,
+    "Mushroom": datasets.Mushroom, # Replaced Covertype for River v0.18+ compatibility
     "Electricity": datasets.Elec2,
     "SEA": datasets.SEA,
 }
