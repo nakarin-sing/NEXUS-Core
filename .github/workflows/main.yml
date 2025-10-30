@@ -23,12 +23,13 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         
-        # 1. ติดตั้ง NumPy เวอร์ชันที่เสถียร (1.24.4) ก่อน เพื่อป้องกันปัญหา Binary Incompatibility
+        # 1. ติดตั้ง NumPy เวอร์ชันที่เสถียร (1.24.4)
         pip install 'numpy==1.24.4'
         
-        # 2. ติดตั้ง River (0.19.0) และ Dependencies ที่เหลือ
-        # River จะถูก Compile โดยใช้ NumPy 1.24.4 ที่ถูกติดตั้งไว้แล้ว
-        pip install pandas 'river==0.19.0' scikit-learn matplotlib seaborn tqdm psutil pytest typing_extensions
+        # 2. ติดตั้ง Dependencies ที่เหลือ พร้อมคำสั่งบังคับ Build ใหม่ทั้งหมด
+        # --no-binary :all: บังคับให้ River ถูก Compile ใหม่ด้วย NumPy 1.24.4 ที่ถูกต้อง
+        # --no-cache-dir ป้องกันการนำ Library เก่าที่ Corrupt มาใช้ซ้ำ
+        pip install pandas 'river==0.19.0' scikit-learn matplotlib seaborn tqdm psutil pytest typing_extensions --no-cache-dir --no-binary :all:
         
     - name: 🛠️ Set Python Path for Module Discovery
       run: |
