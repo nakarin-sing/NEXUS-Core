@@ -61,7 +61,8 @@ class Config:
     dim: Optional[int] = None
     max_snapshots: int = 5
     stress_history_len: int = 1000
-    datasets: Tuple[str, ...] = ("Airlines", "Covertype", "Electricity", "SEA")
+    # FIX: Changed "Airlines" to "Phishing" due to River compatibility issues.
+    datasets: Tuple[str, ...] = ("Phishing", "Covertype", "Electricity", "SEA") 
     results_dir: str = "results"
     version: str = "4.0.0"
     verbose: bool = True
@@ -336,7 +337,8 @@ BASELINES: Dict[str, Callable[[], Any]] = {
 
 # ------------------ DATASETS ------------------
 DATASET_MAP = {
-    "Airlines": datasets.Airlines,
+    # FIX: Changed datasets.Airlines to datasets.Phishing for River compatibility
+    "Phishing": datasets.Phishing, 
     "Covertype": datasets.Covertype,
     "Electricity": datasets.Elec2,
     "SEA": datasets.SEA,
