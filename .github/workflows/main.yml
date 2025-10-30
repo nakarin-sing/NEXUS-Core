@@ -22,8 +22,8 @@ jobs:
     - name: ⚙️ Install Dependencies (The NEXUS Stack)
       run: |
         python -m pip install --upgrade pip
-        # ติดตั้ง River เวอร์ชัน Default แต่บังคับให้ Clear Cache เพื่อป้องกันปัญหาย้อนหลัง
-        pip install numpy pandas river scikit-learn matplotlib seaborn tqdm psutil pytest typing_extensions --no-cache-dir
+        # PIN River Version ให้เป็น 0.19.0 เพื่อความเสถียรและรองรับ river.proba.Bernoulli
+        pip install numpy pandas 'river==0.19.0' scikit-learn matplotlib seaborn tqdm psutil pytest typing_extensions
         
     - name: 🛠️ Set Python Path for Module Discovery
       run: |
