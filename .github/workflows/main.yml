@@ -17,29 +17,32 @@ jobs:
     - name: 🐍 Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11' # ใช้เวอร์ชันที่ทันสมัย
+        python-version: '3.11' 
         
     - name: ⚙️ Install Dependencies (The NEXUS Stack)
       run: |
         python -m pip install --upgrade pip
-        # ติดตั้ง numpy, pandas, river, scikit-learn (สำหรับ datasets/baselines), matplotlib, seaborn, tqdm, psutil, pytest
         pip install numpy pandas river scikit-learn matplotlib seaborn tqdm psutil pytest typing_extensions
+        
+    - name: 🛠️ Set Python Path for Module Discovery (Still needed for tests folder)
+      run: |
+        # เพื่อให้ pytest ใน tests/ หา nexus_core.py ใน root ได้
+        echo "PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH" >> $GITHUB_ENV
         
     - name: 🧪 Run Unit Tests (Validate ABSOLUTE FLAWLESS State)
       run: |
-        # รัน pytest จาก Folder tests
+        # *********** เปลี่ยน: ให้ tests/test_nexus.py import จาก nexus_core ***********
         pytest tests/test_nexus.py
         
     - name: 🥇 Run NEXUS Benchmark (Prove SOTA Performance)
       run: |
-        # รัน main function เพื่อสร้าง results/ และพิมพ์ summary
-        python nexus.py
+        # *********** เปลี่ยน: รันไฟล์ nexus_core.py ***********
+        python nexus_core.py
         
     - name: 📂 Upload Results Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: nexus-benchmark-results-${{ github.sha }}
-        path: results/ # อัพโหลด folder results ทั้งหมด (csv, json, plot.png)
+        path: results/ 
         if-no-files-found: error
         retention-days: 7
-        
