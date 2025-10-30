@@ -61,13 +61,13 @@ class Config:
     dim: Optional[int] = None
     max_snapshots: int = 5
     stress_history_len: int = 1000
-    datasets: Tuple[str, ...] = ("Phishing", "Mushroom", "Electricity", "SEA") 
+    # FIX V12: Final stabilization of datasets using known stable River v0.18+ datasets.
+    datasets: Tuple[str, ...] = ("Phishing", "Bikes", "Electricity", "SEA") 
     results_dir: str = "results"
     version: str = "4.0.0"
     verbose: bool = True
     max_samples: int = MAX_SAMPLES
     git_hash: str = "unknown"
-    # FIX V10: Corrected Python boolean literals from 'true' to 'True'
     enable_ncra: bool = True 
     enable_rfc: bool = True
     weight_decay: float = WEIGHT_DECAY
@@ -337,7 +337,8 @@ BASELINES: Dict[str, Callable[[], Any]] = {
 # ------------------ DATASETS ------------------
 DATASET_MAP = {
     "Phishing": datasets.Phishing, 
-    "Mushroom": datasets.Mushroom, 
+    # FIX V12: Using 'Bikes' which is stable in River v0.18+ (replaces Mushroom/STAGGER).
+    "Bikes": datasets.Bikes, 
     "Electricity": datasets.Elec2,
     "SEA": datasets.SEA,
 }
