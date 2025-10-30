@@ -16,7 +16,7 @@ import seaborn as sns
 import pandas as pd
 from river import datasets, metrics, ensemble, tree, preprocessing
 from river.base import Classifier
-from river.stats import Bernoulli  # <--- FINAL FIX v2: Changed from river.proba to river.stats
+from river.proba.bern import Bernoulli # <--- FINAL FIX v3: Pointing directly to the submodule 'bern'
 #import jsjsonrom collections import deque
 import json
 from collections import deque
