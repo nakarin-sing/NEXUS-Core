@@ -17,7 +17,7 @@ jobs:
     - name: ⚙️ Install System Dependencies (ABSOLUTE HARDENED BUILD)
       run: |
         sudo apt-get update
-        # การแก้ไข: เพิ่ม libopenblas-dev เพื่อแก้ปัญหา SciPy Meson Build
+        # ติดตั้ง Build Tools, Python Dev Headers, และ OpenBLAS (สำหรับ SciPy)
         sudo apt-get install -y build-essential gfortran libblas-dev liblapack-dev python3-dev libopenblas-dev 
         
     - name: 🐍 Set up Python
@@ -25,18 +25,19 @@ jobs:
       with:
         python-version: '3.11' 
         
-    - name: ⚙️ Install Core Dependencies (Source Compiling NumPy, SciPy, Scikit-learn)
+    - name: ⚙️ Install Core Dependencies (Source Compiling NumPy, SciPy, Scikit-learn, River)
       run: |
         python -m pip install --upgrade pip
         
-        # ติดตั้ง NumPy เวอร์ชันที่เสถียร (1.24.4)
+        # 1. ติดตั้ง NumPy เวอร์ชันที่เสถียร (1.24.4)
         pip install 'numpy==1.24.4'
         
-        # บังคับติดตั้ง SciPy และ Scikit-learn จาก Source ก่อน Dependencies อื่น
-        pip install scipy scikit-learn --no-cache-dir --no-binary :all:
+        # 2. การแก้ไข: บังคับติดตั้ง SciPy, Scikit-learn และ RIVER จาก Source
+        # แก้ปัญหา Binary Incompatibility ของ River
+        pip install scipy scikit-learn 'river==0.19.0' --no-cache-dir --no-binary :all:
         
-        # ติดตั้ง Dependencies ที่เหลือโดยไม่ใช้ --no-binary :all:
-        pip install pandas 'river==0.19.0' matplotlib seaborn tqdm psutil pytest typing_extensions --no-cache-dir
+        # 3. ติดตั้ง Dependencies ที่เหลือโดยใช้ Binary Wheel ตามปกติ
+        pip install pandas matplotlib seaborn tqdm psutil pytest typing_extensions --no-cache-dir
         
     - name: 🛠️ Set Python Path for Module Discovery
       run: |
@@ -44,6 +45,7 @@ jobs:
         
     - name: 🧪 Run Unit Tests (Validate ABSOLUTE FLAWLESS State)
       run: |
+        # Pytest ควรจะ Run ได้สำเร็จแล้ว
         pytest tests/test_nexus.py
         
     - name: 🥇 Run NEXUS Benchmark (Prove SOTA Performance)
