@@ -71,7 +71,8 @@ class Config:
     dim: Optional[int] = None
     max_snapshots: int = 5
     stress_history_len: int = 1000
-    datasets: Tuple[str, ...] = ("Airlines", "Covertype", "Electricity", "SEA")
+    # FIX: Removed "Airlines" and "Covertype" which cause AttributeError in newer River versions
+    datasets: Tuple[str, ...] = ("Electricity", "SEA")
     results_dir: str = "results"
     version: str = "4.0.0"
     verbose: bool = True
@@ -394,9 +395,8 @@ BASELINES: Dict[str, Callable[[], Any]] = {
 }
 
 # ------------------ DATASETS ------------------
+# Only including datasets confirmed to exist in River core library across multiple versions
 DATASET_MAP = {
-    "Airlines": datasets.Airlines,
-    "Covertype": datasets.Covertype,
     "Electricity": datasets.Elec2,
     "SEA": datasets.SEA,
 }
