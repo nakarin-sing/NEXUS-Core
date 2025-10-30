@@ -16,7 +16,7 @@ import seaborn as sns
 import pandas as pd
 from river import datasets, metrics, ensemble, tree, preprocessing
 from river.base import Classifier
-from river.proba.bern import Bernoulli # <--- FINAL FIX v3: Pointing directly to the submodule 'bern'
+from river import proba # <--- FINAL FIX v5: Using module import (proba.Bernoulli) for universal River compatibility.
 #import jsjsonrom collections import deque
 import json
 from collections import deque
@@ -200,7 +200,7 @@ class NEXUS_River(Classifier):
         p = self.predict_proba_one(x)[True]
         return 1 if p >= 0.5 else 0
 
-    def predict_proba_one(self, x: Dict[str, Any]) -> Bernoulli:
+    def predict_proba_one(self, x: Dict[str, Any]) -> proba.Bernoulli:
         with self._lock:
             if self.w is None:
                 self._init_weights(len(x))
@@ -215,7 +215,7 @@ class NEXUS_River(Classifier):
             total = w_m + w_n + w_r + EPS
             p_ens = safe_div(w_m * p_main + w_n * p_ncra + w_r * p_rfc, total)
             p_ens = np.clip(p_ens, 0.0, 1.0)
-            return Bernoulli(p_ens)
+            return proba.Bernoulli(p_ens)
 
     def _predict_ncra(self, x: np.ndarray) -> float:
         if not self.snapshots:
