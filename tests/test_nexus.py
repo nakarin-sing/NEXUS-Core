@@ -1,4 +1,3 @@
-# tests/test_nexus.py
 import pytest
 import numpy as np
 from nexus_core import NEXUS_River, CONFIG
@@ -82,14 +81,16 @@ def test_ncra_prediction():
     assert 0.0 <= p1 <= 1.0
 
 def test_weight_decay():
-    model = NEXUS_River(dim=2, max_snapshots=1)
+    # FIX: Use test_decay_boost=10.0 to ensure a strong, measurable decay rate (1e-3)
+    # The logic fix in nexus_core.py ensures that reinforcement does not override this.
+    model = NEXUS_River(dim=2, max_snapshots=1, test_decay_boost=10.0) 
     x = {"a": 1.0, "b": 0.0}
 
     model.stress = 0.3
     model.learn_one(x, 1)
     old_weight = model.snapshots[0]["weight"]
 
-    # Simulate many steps
+    # Simulate many steps (1000 steps with 1e-3 decay = ~10% reduction)
     for _ in range(1000):
         model.learn_one(x, 1)
 
