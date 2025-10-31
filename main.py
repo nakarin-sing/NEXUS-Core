@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-main.py — NEXUS v7.0.0 FULL BENCHMARK
+main.py — NEXUS v7.1.0 FULL BENCHMARK
 ประชัน 5 คู่แข่ง | ครองอันดับ 1 | CI/CD READY
 """
 
@@ -9,12 +9,11 @@ from __future__ import annotations
 import numpy as np
 import logging
 import time
-import json
 from collections import deque
 from tqdm import tqdm
-from typing import Dict, Any, Iterable, Optional, Callable, Tuple, List, Literal
+from typing import Dict, Any, Callable, Tuple
 import random
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from pathlib import Path
 import warnings
 import sys
@@ -33,8 +32,7 @@ except ImportError:
     psutil = None
 
 # ------------------ RIVER IMPORTS ------------------
-from river import datasets, metrics, ensemble, tree, preprocessing
-from river.base import Classifier
+from river import datasets, metrics, preprocessing, ensemble, tree
 from nexus_core import NEXUS_River
 
 warnings.filterwarnings("ignore")
@@ -48,7 +46,7 @@ class Config:
     stress_history_len: int = 100
     datasets: Tuple[str, ...] = ("Electricity",)
     results_dir: str = "results"
-    version: str = "7.0.0"
+    version: str = "7.1.0"
     max_samples: int = 1000
 
 CONFIG = Config()
@@ -80,15 +78,15 @@ BASELINES = {
         n_models=10,
         seed=CONFIG.seed
     ),
-    "ARF": lambda: preprocessing.StandardScaler() | ensemble.AdaptiveRandomForestClassifier(
+    "ARF": lambda: preprocessing.StandardScaler() | ensemble.AdaptiveRandomForest(  # แก้ตรงนี้!
         n_models=10,
         seed=CONFIG.seed
     ),
-    "SRP": lambda: preprocessing.StandardScaler() | ensemble.StreamingRandomPatchesClassifier(
+    "SRP": lambda: preprocessing.StandardScaler() | ensemble.SRPClassifier(  # แก้ตรงนี้!
         n_models=10,
         seed=CONFIG.seed
     ),
-    "LB": lambda: preprocessing.StandardScaler() | ensemble.LeveragingBaggingClassifier(
+    "LB": lambda: preprocessing.StandardScaler() | ensemble.LeveragingBagging(  # แก้ตรงนี้!
         model=tree.HoeffdingTreeClassifier(),
         n_models=10,
         seed=CONFIG.seed
@@ -163,31 +161,33 @@ def main() -> None:
     final_df = pd.concat(all_results, ignore_index=True)
     final_df.to_csv(f"{CONFIG.results_dir}/all_results.csv", index=False)
 
-    summary = final_df.groupby(["Dataset", "Model"])["AUC"].mean().round(4).reindex(["NEXUS", "HATT", "OzaBag", "ARF", "SRP", "LB"], axis=1)
-    rank = summary.rank(axis=1, ascending=False).loc[:, "NEXUS"]
-    summary["Rank"] = [f"{int(r)}" + ("st" if r==1 else "nd" if r==2 else "rd" if r==3 else "th") for r in rank]
+    # จัดอันดับ
+    summary = final_df.groupby(["Dataset", "Model"])["AUC"].mean().round(4)
+    summary_df = summary.unstack()
+    rank = summary_df.rank(axis=1, ascending=False)
+    summary_df["Rank"] = rank["NEXUS"].apply(lambda x: f"{int(x)}" + ("st" if x==1 else "nd" if x==2 else "rd" if x==3 else "th"))
 
-    summary.to_csv(f"{CONFIG.results_dir}/summary.csv")
+    summary_df.to_csv(f"{CONFIG.results_dir}/summary.csv")
     with open(f"{CONFIG.results_dir}/summary.md", "w") as f:
         f.write(f"# NEXUS v{CONFIG.version} — หล่อทะลุจักรวาล\n\n")
-        f.write(f"**Mean AUC**: {summary.mean(axis=0)['NEXUS']:.4f}\n")
-        f.write(f"**Rank**: {summary['Rank'].iloc[0]}\n\n")
-        f.write(summary.to_markdown())
+        f.write(f"**Mean AUC (NEXUS)**: {summary_df['NEXUS'].iloc[0]:.4f}\n")
+        f.write(f"**Rank**: {summary_df['Rank'].iloc[0]}\n\n")
+        f.write(summary_df.to_markdown())
 
     plt.figure(figsize=(10, 6))
-    sns.barplot(data=final_df, x="Dataset", y="AUC", hue="Model")
-    plt.title("NEXUS v7.0.0 — FULL BENCHMARK")
+    sns.barplot(data=final_df, x="Dataset", y="AUC", hue="Model", order=["Electricity"])
+    plt.title("NEXUS v7.1.0 — FULL BENCHMARK vs 5 Competitors")
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
     plt.savefig(f"{CONFIG.results_dir}/plot.png", dpi=150, bbox_inches='tight')
     plt.close()
 
-    print("\n" + "="*80)
+    print("\n" + "="*100)
     print(f"NEXUS v{CONFIG.version} — FULL BENCHMARK")
-    print(f"Mean AUC: {summary.mean(axis=0)['NEXUS']:.4f} | Rank: {summary['Rank'].iloc[0]}")
-    print("="*80)
-    print(summary.to_markdown())
-    print("="*80)
+    print(f"Mean AUC (NEXUS): {summary_df['NEXUS'].iloc[0]:.4f} | Rank: {summary_df['Rank'].iloc[0]}")
+    print("="*100)
+    print(summary_df.to_markdown())
+    print("="*100)
 
     # --- แสดงไฟล์ใน results/ ---
     print("\n=== ไฟล์ใน results/ ===")
