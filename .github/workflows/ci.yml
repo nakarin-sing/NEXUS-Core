@@ -28,7 +28,7 @@ jobs:
           python main.py
 
       - name: Debug: List results folder
-        shell: bash  # เพิ่มบรรทัดนี้!
+        shell: bash
         run: |
           echo "=== DEBUG: ตรวจสอบโฟลเดอร์ results/ ==="
           if [ -d "results" ]; then
