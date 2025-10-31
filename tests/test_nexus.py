@@ -100,11 +100,11 @@ def test_reset():
 def test_stress_update():
     """ทดสอบ stress อัปเดตตาม loss"""
     model = NEXUS_River(dim=1)
-    x = {"f": 0.0}
+    x = {"f": 1.0}  # ต้องมีค่า ≠ 0
 
     # จำลอง prediction ผิดเต็ม ๆ → err = 1.0 → loss = 1.0 → HIGH
-    model.w = np.array([10.0])
-    model.bias = 0.0
+    model.w = np.array([0.0])
+    model.bias = 10.0
     model.predict_proba_one(x)
     model.learn_one(x, 0)
 
@@ -114,9 +114,10 @@ def test_stress_update():
     # จำลอง high loss ซ้ำ 10 ครั้ง → stress ต้องพุ่ง
     model.stress = 0.0
     for _ in range(10):
-        model.w = np.array([30.0])  # ค่าสูงมากเพื่อให้ p ≈ 1.0 แม้ w ถูกปรับ
-        model.predict_proba_one(x)  # ต้องเรียกก่อน learn_one
-        model.learn_one(x, 0)       # err ≈ 1.0 → loss = 1.0
+        model.bias = 20.0
+        model.w = np.array([0.0])
+        model.predict_proba_one(x)
+        model.learn_one(x, 0)
 
     assert model.stress > 0.1, f"Stress ต้อง > 0.1 หลัง high loss 10 ครั้ง, ได้ {model.stress}"
 
