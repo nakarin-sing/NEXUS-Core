@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-main.py — NEXUS v7.2.0 FULL BENCHMARK
+main.py — NEXUS v7.3.0 FULL BENCHMARK
 ประชัน 5 คู่แข่ง | ครองอันดับ 1 | CI/CD READY
 """
 
@@ -46,7 +46,7 @@ class Config:
     stress_history_len: int = 100
     datasets: Tuple[str, ...] = ("Electricity",)
     results_dir: str = "results"
-    version: str = "7.2.0"
+    version: str = "7.3.0"
     max_samples: int = 1000
 
 CONFIG = Config()
@@ -78,7 +78,7 @@ BASELINES = {
         n_models=10,
         seed=CONFIG.seed
     ),
-    "ARF": lambda: preprocessing.StandardScaler() | ensemble.AdaptiveRandomForestClassifier(  # ถูกต้อง!
+    "ARF": lambda: preprocessing.StandardScaler() | ensemble.AdaptiveRandomForest(  # ถูกต้อง!
         n_models=10,
         seed=CONFIG.seed
     ),
@@ -176,7 +176,7 @@ def main() -> None:
 
     plt.figure(figsize=(10, 6))
     sns.barplot(data=final_df, x="Dataset", y="AUC", hue="Model")
-    plt.title("NEXUS v7.2.0 — FULL BENCHMARK vs 5 Competitors")
+    plt.title("NEXUS v7.3.0 — FULL BENCHMARK vs 5 Competitors")
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
     plt.savefig(f"{CONFIG.results_dir}/plot.png", dpi=150, bbox_inches='tight')
