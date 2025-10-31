@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-main.py — NEXUS v6.5.0 Benchmark Runner
+main.py — NEXUS v6.6.0 Benchmark Runner
 รันใน CI | สร้าง results/ | อัปโหลด Artifacts
 """
 
@@ -18,6 +18,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 import warnings
 import sys
+from contextlib import contextmanager  # แก้ตรงนี้!
 
 # ------------------ GITHUB ACTIONS FIXES ------------------
 import matplotlib
@@ -46,7 +47,7 @@ class Config:
     stress_history_len: int = 100
     datasets: Tuple[str, ...] = ("Electricity",)
     results_dir: str = "results"
-    version: str = "6.5.0"
+    version: str = "6.6.0"
     max_samples: int = 1000
 
 CONFIG = Config()
@@ -118,6 +119,15 @@ def evaluate_model(model_cls: Callable[[], Any], dataset_name: str) -> pd.DataFr
         })
     return pd.DataFrame(results)
 
+# ------------------ LOGGING REDIRECT ------------------
+@contextmanager
+def logging_redirect(name: str):
+    start = time.perf_counter()
+    try:
+        yield
+    finally:
+        logger.info(f"{name}: {time.perf_counter() - start:.4f}s")
+
 # ------------------ MAIN ------------------
 def main() -> None:
     all_results = []
@@ -141,7 +151,7 @@ def main() -> None:
 
     plt.figure(figsize=(6, 4))
     sns.barplot(data=final_df, x="Dataset", y="AUC", hue="Model")
-    plt.title("NEXUS v6.5.0 — World Champion")
+    plt.title("NEXUS v6.6.0 — World Champion")
     plt.tight_layout()
     plt.savefig(f"{CONFIG.results_dir}/plot.png", dpi=150)
     plt.close()
@@ -150,14 +160,6 @@ def main() -> None:
     print(f"NEXUS v{CONFIG.version} — CI PASS 100%")
     print(f"AUC: {summary.values[0]:.4f} | Rank: 1st")
     print("="*80)
-
-@contextmanager
-def logging_redirect(name: str):
-    start = time.perf_counter()
-    try:
-        yield
-    finally:
-        logger.info(f"{name}: {time.perf_counter() - start:.4f}s")
 
 if __name__ == "__main__":
     main()
