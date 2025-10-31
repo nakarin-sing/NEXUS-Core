@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-main.py — NEXUS v7.1.0 FULL BENCHMARK
+main.py — NEXUS v7.2.0 FULL BENCHMARK
 ประชัน 5 คู่แข่ง | ครองอันดับ 1 | CI/CD READY
 """
 
@@ -46,7 +46,7 @@ class Config:
     stress_history_len: int = 100
     datasets: Tuple[str, ...] = ("Electricity",)
     results_dir: str = "results"
-    version: str = "7.1.0"
+    version: str = "7.2.0"
     max_samples: int = 1000
 
 CONFIG = Config()
@@ -78,15 +78,15 @@ BASELINES = {
         n_models=10,
         seed=CONFIG.seed
     ),
-    "ARF": lambda: preprocessing.StandardScaler() | ensemble.AdaptiveRandomForest(  # แก้ตรงนี้!
+    "ARF": lambda: preprocessing.StandardScaler() | ensemble.AdaptiveRandomForestClassifier(  # ถูกต้อง!
         n_models=10,
         seed=CONFIG.seed
     ),
-    "SRP": lambda: preprocessing.StandardScaler() | ensemble.SRPClassifier(  # แก้ตรงนี้!
+    "SRP": lambda: preprocessing.StandardScaler() | ensemble.SRPClassifier(  # ถูกต้อง!
         n_models=10,
         seed=CONFIG.seed
     ),
-    "LB": lambda: preprocessing.StandardScaler() | ensemble.LeveragingBagging(  # แก้ตรงนี้!
+    "LB": lambda: preprocessing.StandardScaler() | ensemble.LeveragingBaggingClassifier(  # ถูกต้อง!
         model=tree.HoeffdingTreeClassifier(),
         n_models=10,
         seed=CONFIG.seed
@@ -175,8 +175,8 @@ def main() -> None:
         f.write(summary_df.to_markdown())
 
     plt.figure(figsize=(10, 6))
-    sns.barplot(data=final_df, x="Dataset", y="AUC", hue="Model", order=["Electricity"])
-    plt.title("NEXUS v7.1.0 — FULL BENCHMARK vs 5 Competitors")
+    sns.barplot(data=final_df, x="Dataset", y="AUC", hue="Model")
+    plt.title("NEXUS v7.2.0 — FULL BENCHMARK vs 5 Competitors")
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
     plt.savefig(f"{CONFIG.results_dir}/plot.png", dpi=150, bbox_inches='tight')
