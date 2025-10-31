@@ -81,8 +81,9 @@ def test_ncra_prediction():
     assert 0.0 <= p1 <= 1.0
 
 def test_weight_decay():
-    # FIX: Use test_decay_boost=10.0 to ensure a strong, measurable decay rate (1e-3)
-    # The logic fix in nexus_core.py ensures that reinforcement does not override this.
+    # FIX: Use test_decay_boost=10.0 to ensure a strong, measurable decay rate (1e-3).
+    # The core logic in nexus_core.py now ensures that perfect reinforcement is capped at 1.0, 
+    # allowing the explicit decay factor (0.999) to dominate.
     model = NEXUS_River(dim=2, max_snapshots=1, test_decay_boost=10.0) 
     x = {"a": 1.0, "b": 0.0}
 
@@ -90,13 +91,17 @@ def test_weight_decay():
     model.learn_one(x, 1)
     old_weight = model.snapshots[0]["weight"]
 
-    # Simulate many steps (1000 steps with 1e-3 decay = ~10% reduction)
+    # Simulate many steps (1000 steps with 1e-3 decay = ~63% reduction)
     for _ in range(1000):
         model.learn_one(x, 1)
 
     new_weight = model.snapshots[0]["weight"]
-    assert new_weight > 0.0  # not zero
-    assert new_weight < old_weight
+    
+    assert new_weight > 0.0, "Weight dropped to zero."
+    # The weight must decay.
+    assert new_weight < old_weight, f"Weight did not decay: {new_weight} >= {old_weight}"
+    # The weight should drop significantly (approx. 1/e = 0.367 of original weight). Check for > 5% drop.
+    assert new_weight < old_weight * 0.95, f"Weight decay too small: {new_weight/old_weight:.6f}"
 
 def test_save_load():
     model = NEXUS_River(dim=3)
