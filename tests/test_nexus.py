@@ -105,7 +105,8 @@ def test_stress_update():
     # จำลอง prediction ผิดเต็ม ๆ → err = 1.0 → loss = 1.0 → HIGH
     model.w = np.array([10.0])  # ทำให้ p ≈ 1.0
     model.bias = 0.0
-    model.learn_one(x, 0)  # y = 0 → err = 1.0
+    model.predict_proba_one(x)  # ต้องเรียกก่อน
+    model.learn_one(x, 0)       # y = 0 → err = 1.0
 
     assert model.stress > 0.0
     assert model.stress <= 0.15
@@ -113,6 +114,7 @@ def test_stress_update():
     # จำลอง high loss อีกครั้ง
     model.stress = 0.0
     model.w = np.array([10.0])
+    model.predict_proba_one(x)  # ต้องเรียกอีกครั้ง
     model.learn_one(x, 0)
     assert model.stress > 0.1  # ควรสูงขึ้น
 
