@@ -11,14 +11,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: |
+
+      - name: Install dependencies
+        run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - run: python main.py
-      - uses: actions/upload-artifact@v4
+
+      - name: Run benchmark
+        run: |
+          python main.py
+
+      - name: Debug: List results folder
+        run: |
+          echo "=== DEBUG: ตรวจสอบโฟลเดอร์ results/ ==="
+          if [ -d "results" ]; then
+            ls -la results/
+            echo "จำนวนไฟล์: $(ls -1 results/ | wc -l)"
+          else
+            echo "โฟลเดอร์ results/ ไม่พบ!"
+          fi
+          echo "========================================"
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
         with:
           name: benchmark-results
           path: results/
+          if-no-files-found: error
+          retention-days: 7
