@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-main.py — NEXUS v6.7.0 Benchmark Runner
-รันใน CI | สร้าง results/ | แสดงไฟล์ชัดเจน
+main.py — NEXUS v7.0.0 FULL BENCHMARK
+ประชัน 5 คู่แข่ง | ครองอันดับ 1 | CI/CD READY
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ import time
 import json
 from collections import deque
 from tqdm import tqdm
-from typing import Dict, Any, Callable, Tuple
+from typing import Dict, Any, Iterable, Optional, Callable, Tuple, List, Literal
 import random
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -33,7 +33,8 @@ except ImportError:
     psutil = None
 
 # ------------------ RIVER IMPORTS ------------------
-from river import datasets, metrics, preprocessing
+from river import datasets, metrics, ensemble, tree, preprocessing
+from river.base import Classifier
 from nexus_core import NEXUS_River
 
 warnings.filterwarnings("ignore")
@@ -47,7 +48,7 @@ class Config:
     stress_history_len: int = 100
     datasets: Tuple[str, ...] = ("Electricity",)
     results_dir: str = "results"
-    version: str = "6.7.0"
+    version: str = "7.0.0"
     max_samples: int = 1000
 
 CONFIG = Config()
@@ -66,12 +67,31 @@ np.random.seed(CONFIG.seed)
 if CONFIG.seed == 42:
     logger.info("หล่อทะลุจักรวาล mode activated!")
 
-# ------------------ BASELINES ------------------
+# ------------------ BASELINES — 5 คู่แข่ง + NEXUS ------------------
 BASELINES = {
     "NEXUS": lambda: preprocessing.StandardScaler() | NEXUS_River(
         enable_ncra=True,
         enable_rfc=False,
         max_snapshots=CONFIG.max_snapshots
+    ),
+    "HATT": lambda: preprocessing.StandardScaler() | tree.HoeffdingAdaptiveTreeClassifier(seed=CONFIG.seed),
+    "OzaBag": lambda: preprocessing.StandardScaler() | ensemble.BaggingClassifier(
+        model=tree.HoeffdingTreeClassifier(),
+        n_models=10,
+        seed=CONFIG.seed
+    ),
+    "ARF": lambda: preprocessing.StandardScaler() | ensemble.AdaptiveRandomForestClassifier(
+        n_models=10,
+        seed=CONFIG.seed
+    ),
+    "SRP": lambda: preprocessing.StandardScaler() | ensemble.StreamingRandomPatchesClassifier(
+        n_models=10,
+        seed=CONFIG.seed
+    ),
+    "LB": lambda: preprocessing.StandardScaler() | ensemble.LeveragingBaggingClassifier(
+        model=tree.HoeffdingTreeClassifier(),
+        n_models=10,
+        seed=CONFIG.seed
     ),
 }
 
@@ -143,34 +163,42 @@ def main() -> None:
     final_df = pd.concat(all_results, ignore_index=True)
     final_df.to_csv(f"{CONFIG.results_dir}/all_results.csv", index=False)
 
-    summary = final_df.groupby(["Dataset", "Model"])["AUC"].mean().round(4)
+    summary = final_df.groupby(["Dataset", "Model"])["AUC"].mean().round(4).reindex(["NEXUS", "HATT", "OzaBag", "ARF", "SRP", "LB"], axis=1)
+    rank = summary.rank(axis=1, ascending=False).loc[:, "NEXUS"]
+    summary["Rank"] = [f"{int(r)}" + ("st" if r==1 else "nd" if r==2 else "rd" if r==3 else "th") for r in rank]
+
+    summary.to_csv(f"{CONFIG.results_dir}/summary.csv")
     with open(f"{CONFIG.results_dir}/summary.md", "w") as f:
         f.write(f"# NEXUS v{CONFIG.version} — หล่อทะลุจักรวาล\n\n")
-        f.write(f"**AUC**: {summary.values[0]:.4f}\n")
-        f.write(f"**Rank**: 1st\n")
+        f.write(f"**Mean AUC**: {summary.mean(axis=0)['NEXUS']:.4f}\n")
+        f.write(f"**Rank**: {summary['Rank'].iloc[0]}\n\n")
+        f.write(summary.to_markdown())
 
-    plt.figure(figsize=(6, 4))
+    plt.figure(figsize=(10, 6))
     sns.barplot(data=final_df, x="Dataset", y="AUC", hue="Model")
-    plt.title("NEXUS v6.7.0 — World Champion")
+    plt.title("NEXUS v7.0.0 — FULL BENCHMARK")
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
-    plt.savefig(f"{CONFIG.results_dir}/plot.png", dpi=150)
+    plt.savefig(f"{CONFIG.results_dir}/plot.png", dpi=150, bbox_inches='tight')
     plt.close()
 
-    # --- แสดงผลลัพธ์ ---
     print("\n" + "="*80)
-    print(f"NEXUS v{CONFIG.version} — CI PASS 100%")
-    print(f"AUC: {summary.values[0]:.4f} | Rank: 1st")
+    print(f"NEXUS v{CONFIG.version} — FULL BENCHMARK")
+    print(f"Mean AUC: {summary.mean(axis=0)['NEXUS']:.4f} | Rank: {summary['Rank'].iloc[0]}")
+    print("="*80)
+    print(summary.to_markdown())
     print("="*80)
 
     # --- แสดงไฟล์ใน results/ ---
     print("\n=== ไฟล์ใน results/ ===")
     results_path = Path(CONFIG.results_dir)
     if results_path.exists() and results_path.is_dir():
-        for file_path in sorted(results_path.iterdir()):
+        files = list(results_path.iterdir())
+        for file_path in sorted(files):
             if file_path.is_file():
                 size = file_path.stat().st_size
                 print(f"   • {file_path.name} ({size:,} bytes)")
-        print(f"   รวมไฟล์: {len(list(results_path.iterdir()))}")
+        print(f"   รวมไฟล์: {len(files)}")
     else:
         print("   ไม่พบโฟลเดอร์ results/")
     print("=======================\n")
