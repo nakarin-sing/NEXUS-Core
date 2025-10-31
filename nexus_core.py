@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-nexus_core.py — NEXUS_River v6.5.0
+nexus_core.py — NEXUS_River v6.6.0
 RIVER-COMPLIANT | ZERO-BUG | TYPE-SAFE
 """
 
@@ -13,7 +13,6 @@ from collections import deque
 from threading import RLock
 import logging
 
-# ------------------ CONFIG ------------------
 try:
     from main import CONFIG
 except ImportError:
@@ -27,7 +26,6 @@ except ImportError:
 
 logger = logging.getLogger("NEXUS")
 
-# ------------------ CONSTANTS ------------------
 STRESS_HIGH: float = 0.15
 STRESS_MED: float = 0.05
 LOSS_HIGH_THRESH: float = 0.5
@@ -37,7 +35,6 @@ EPS: float = 1e-9
 GRAD_CLIP: float = 1.0
 NUMPY_FLOAT = np.float32
 
-# ------------------ NEXUS_RIVER ------------------
 class NEXUS_River(Classifier):
     def __init__(
         self,
