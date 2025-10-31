@@ -1,26 +1,22 @@
 #!/usr/bin/env python3
 """
-nexus_core.py — NEXUS_River v6.4.0
-RIVER-COMPLIANT | ZERO-BUG | TYPE-SAFE | MEMORY-SAFE
-EASTER EGG: หล่อทะลุจักรวาล
+nexus_core.py — NEXUS_River v6.5.0
+RIVER-COMPLIANT | ZERO-BUG | TYPE-SAFE
 """
 
 from __future__ import annotations
 
 import numpy as np
 from river.base import Classifier
-from river.proba import Gaussian
 from typing import Dict, Any, Optional, Literal
 from collections import deque
 from threading import RLock
 import logging
 
-# ------------------ CONFIG (ใช้ร่วมกับ main.py) ------------------
-# ต้องมี CONFIG ใน main.py ก่อน import
+# ------------------ CONFIG ------------------
 try:
-    from main import CONFIG  # type: ignore
+    from main import CONFIG
 except ImportError:
-    # Fallback ถ้าไม่มี main.py
     from dataclasses import dataclass
     @dataclass(frozen=True)
     class Config:
@@ -39,20 +35,16 @@ LR_MIN: float = 0.01
 LR_MAX: float = 1.0
 EPS: float = 1e-9
 GRAD_CLIP: float = 1.0
-MIN_WEIGHT: float = 0.1
-WEIGHT_DECAY: float = 0.9995
 NUMPY_FLOAT = np.float32
 
-
-# ------------------ NEXUS_RIVER v6.4.0 ------------------
+# ------------------ NEXUS_RIVER ------------------
 class NEXUS_River(Classifier):
-    """NEXUS: Memory-Aware Online Learner with NCRA"""
-
     def __init__(
         self,
         dim: Optional[int] = None,
         enable_ncra: bool = True,
-        enable_rfc: bool = False
+        enable_rfc: bool = False,
+        max_snapshots: Optional[int] = None
     ):
         super().__init__()
         self.dim = dim
@@ -61,16 +53,13 @@ class NEXUS_River(Classifier):
         self.lr: float = 0.25
         self.stress: float = 0.0
         self.stress_history = deque(maxlen=CONFIG.stress_history_len)
-        self.max_snapshots: int = CONFIG.max_snapshots  # แก้ error!
+        self.max_snapshots: int = max_snapshots if max_snapshots is not None else CONFIG.max_snapshots
         self.snapshots = deque(maxlen=self.max_snapshots)
         self.sample_count: int = 0
         self.feature_names: list = []
         self.enable_ncra = enable_ncra
         self.enable_rfc = enable_rfc
         self._lock = RLock()
-
-        if CONFIG.seed == 42:
-            logger.debug("NEXUS_River: หล่อทะลุจักรวาล mode ON!")
 
     def _init_weights(self, n_features: int) -> None:
         if self.dim is None:
@@ -157,6 +146,3 @@ class NEXUS_River(Classifier):
             self.stress_history.clear()
             self.snapshots.clear()
             self.feature_names = []
-
-    def __repr__(self) -> str:
-        return f"NEXUS_River(v6.4.0, dim={self.dim}, samples={self.sample_count})"
