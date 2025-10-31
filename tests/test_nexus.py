@@ -114,9 +114,14 @@ def test_stress_update():
     # จำลอง high loss ซ้ำ 10 ครั้ง → stress ต้องพุ่ง
     model.stress = 0.0
     for _ in range(10):
-        model.w = np.array([20.0])  # ใช้ค่าแรงขึ้นเพื่อรักษา p ≈ 1.0
-        model.predict_proba_one(x)
+        # 1. เรียนรู้ก่อน (w ถูกอัปเดต)
         model.learn_one(x, 0)
+        # 2. เรียก predict_proba_one หลัง (เพื่อให้ p_ens ถูกคำนวณจาก w ใหม่)
+        model.predict_proba_one(x)
+        # 3. รีเซ็ต w ให้ p_ens ≈ 1.0 ใหม่
+        model.w = np.array([20.0])
+        # 4. เรียก predict_proba_one อีกครั้งเพื่อให้ p_ens ≈ 1.0
+        model.predict_proba_one(x)
 
     assert model.stress > 0.1, f"Stress ต้อง > 0.1 หลัง high loss 10 ครั้ง, ได้ {model.stress}"
 
