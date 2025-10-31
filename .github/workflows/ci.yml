@@ -27,7 +27,7 @@ jobs:
         run: |
           python main.py
 
-      - name: Debug: List results folder
+      - name: Debug - List results folder
         shell: bash
         run: |
           echo "=== DEBUG: ตรวจสอบโฟลเดอร์ results/ ==="
