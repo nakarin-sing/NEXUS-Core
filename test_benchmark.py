@@ -8,7 +8,7 @@ import os
 from main import main as run_benchmark
 
 if __name__ == "__main__":
-    print("=== NEXUS v6.5.0 LOCAL BENCHMARK ===")
+    print("=== NEXUS v6.6.0 LOCAL BENCHMARK ===")
     print("กำลังรัน benchmark บน Electricity dataset...")
     print("ผลลัพธ์จะแสดงใน console และบันทึกใน results/\n")
 
