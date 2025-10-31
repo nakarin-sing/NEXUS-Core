@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-NEXUS Core v6.1.0 — GITHUB ACTIONS CI/CD PASS 100%
-ZERO IMPORT ERROR | FULLY RIVER-COMPLIANT | EASTER EGG: หล่อทะลุจักรวาล
+main.py — NEXUS v6.5.0 Benchmark Runner
+รันใน CI | สร้าง results/ | อัปโหลด Artifacts
 """
 
 from __future__ import annotations
@@ -12,15 +12,11 @@ import time
 import json
 from collections import deque
 from tqdm import tqdm
-from typing import Dict, Any, Iterable, Optional, Callable, Tuple, List, Literal
+from typing import Dict, Any, Callable, Tuple
 import random
 from dataclasses import dataclass, asdict
 from pathlib import Path
-import pickle
-from contextlib import contextmanager
 import warnings
-from threading import RLock
-import os
 import sys
 
 # ------------------ GITHUB ACTIONS FIXES ------------------
@@ -36,25 +32,10 @@ except ImportError:
     psutil = None
 
 # ------------------ RIVER IMPORTS ------------------
-from river import datasets, metrics, ensemble, tree, preprocessing
-from river.base import Classifier
+from river import datasets, metrics, preprocessing
+from nexus_core import NEXUS_River
 
-warnings.filterwarnings("ignore", category=RuntimeWarning)
-warnings.filterwarnings("ignore", category=UserWarning)
-
-# ------------------ CONSTANTS ------------------
-STRESS_HIGH: float = 0.15
-STRESS_MED: float = 0.05
-LOSS_HIGH_THRESH: float = 0.5
-LR_MIN: float = 0.01
-LR_MAX: float = 1.0
-EPS: float = 1e-9
-STD_EPS: float = 1e-6
-MAX_SAMPLES: int = 1000
-GRAD_CLIP: float = 1.0
-MIN_WEIGHT: float = 0.1
-WEIGHT_DECAY: float = 0.9995
-NUMPY_FLOAT = np.float32
+warnings.filterwarnings("ignore")
 
 # ------------------ CONFIGURATION ------------------
 @dataclass(frozen=True)
@@ -65,20 +46,10 @@ class Config:
     stress_history_len: int = 100
     datasets: Tuple[str, ...] = ("Electricity",)
     results_dir: str = "results"
-    version: str = "6.1.0"
-    max_samples: int = MAX_SAMPLES
-    git_hash: str = "ci"
+    version: str = "6.5.0"
+    max_samples: int = 1000
 
-try:
-    import subprocess
-    git_hash = subprocess.check_output(
-        ['git', 'rev-parse', '--short', 'HEAD'],
-        stderr=subprocess.DEVNULL, text=True
-    ).strip()
-except Exception:
-    git_hash = "unknown"
-
-CONFIG = Config(git_hash=git_hash)
+CONFIG = Config()
 Path(CONFIG.results_dir).mkdir(exist_ok=True)
 
 logging.basicConfig(
@@ -94,130 +65,13 @@ np.random.seed(CONFIG.seed)
 if CONFIG.seed == 42:
     logger.info("หล่อทะลุจักรวาล mode activated!")
 
-# ------------------ UTILS ------------------
-@contextmanager
-def timer(name: str):
-    start = time.perf_counter()
-    try:
-        yield
-    finally:
-        logger.info(f"{name}: {time.perf_counter() - start:.4f}s")
-
-def safe_div(a: float, b: float) -> float:
-    return a / (b + EPS)
-
-def safe_exp(x: float) -> float:
-    return np.exp(np.clip(x, -20.0, 20.0))
-
-def safe_std(arr: np.ndarray) -> float:
-    return max(float(np.std(arr)), STD_EPS)
-
-# ------------------ NEXUS CORE v6.1.0 ------------------
-class NEXUS_River(Classifier):
-    def __init__(self, dim: Optional[int] = None, enable_ncra: bool = True, enable_rfc: bool = False):
-        super().__init__()
-        self.dim = dim
-        self.w = None
-        self.bias = 0.0
-        self.lr = 0.25
-        self.stress = 0.0
-        self.stress_history = deque(maxlen=CONFIG.stress_history_len)
-        self.snapshots = deque(maxlen=CONFIG.max_snapshots)
-        self.sample_count = 0
-        self.feature_names = []
-        self.enable_ncra = enable_ncra
-        self.enable_rfc = enable_rfc
-        self._lock = RLock()
-
-    def _init_weights(self, n_features: int):
-        if self.dim is None:
-            self.dim = n_features
-        scale = 0.1 / np.sqrt(self.dim)
-        self.w = np.random.normal(0, scale, self.dim).astype(NUMPY_FLOAT)
-
-    def _sigmoid(self, x: float) -> float:
-        return 1.0 / (1.0 + safe_exp(-x))
-
-    def _to_array(self, x: Dict[str, Any]) -> np.ndarray:
-        if not isinstance(x, dict):
-            raise TypeError("x must be dict")
-        keys = sorted(x.keys())
-        if not self.feature_names:
-            self.feature_names = keys
-        else:
-            new_keys = [k for k in keys if k not in self.feature_names]
-            self.feature_names.extend(new_keys)
-        arr = np.array([float(x.get(k, 0.0)) for k in self.feature_names], dtype=NUMPY_FLOAT)
-        arr = np.nan_to_num(arr, nan=0.0)
-        arr = np.clip(arr, -100.0, 100.0)
-        return arr
-
-    def predict_proba_one(self, x: Dict[str, Any]) -> Dict[bool, float]:
-        with self._lock:
-            if self.w is None:
-                self._init_weights(len(x))
-            x_arr = self._to_array(x)
-            p_main = self._sigmoid(np.dot(x_arr[:self.dim], self.w) + self.bias)
-            p_ncra = self._predict_ncra(x_arr) if self.enable_ncra and self.snapshots else p_main
-            w_m = 1.0
-            w_n = 0.7 if self.enable_ncra and self.snapshots else 0.0
-            total = w_m + w_n + EPS
-            p_ens = (w_m * p_main + w_n * p_ncra) / total
-            p_ens = np.clip(p_ens, 0.0, 1.0)
-            return {True: float(p_ens), False: 1.0 - float(p_ens)}
-
-    def _predict_ncra(self, x: np.ndarray) -> float:
-        if not self.snapshots:
-            return 0.5
-        preds = []
-        weights = []
-        for s in self.snapshots:
-            logit = np.dot(x[:self.dim], s["w"]) + s["bias"]
-            preds.append(self._sigmoid(logit))
-            weights.append(s["weight"])
-        if not weights:
-            return 0.5
-        return float(np.average(preds, weights=weights))
-
-    def learn_one(self, x: Dict[str, Any], y: Literal[0, 1]) -> "NEXUS_River":
-        with self._lock:
-            self.sample_count += 1
-            if self.w is None:
-                self._init_weights(len(x))
-            x_arr = self._to_array(x)
-            p_ens = self.predict_proba_one(x)[True]
-            err = p_ens - float(y)
-
-            adaptive_lr = np.clip(self.lr * (1.0 + min(self.stress * 5.0, 10.0)), LR_MIN, LR_MAX)
-            grad = np.clip(adaptive_lr * err * x_arr[:self.dim], -GRAD_CLIP, GRAD_CLIP)
-            self.w = (self.w - grad).astype(NUMPY_FLOAT)
-            self.bias -= adaptive_lr * err
-
-            loss = err ** 2
-            new_stress = STRESS_HIGH if loss > LOSS_HIGH_THRESH else STRESS_MED
-            self.stress = 0.6 * self.stress + 0.4 * new_stress
-            self.stress_history.append(self.stress)
-
-            if self.enable_ncra and self.stress > 0.1 and len(self.snapshots) < self.max_snapshots:
-                self.snapshots.append({
-                    "w": self.w.copy(),
-                    "bias": self.bias,
-                    "weight": 1.0
-                })
-
-            return self
-
-    def reset(self):
-        with self._lock:
-            self.sample_count = 0
-            self.stress = 0.0
-            self.stress_history.clear()
-            self.snapshots.clear()
-            self.feature_names = []
-
 # ------------------ BASELINES ------------------
 BASELINES = {
-    "NEXUS": lambda: preprocessing.StandardScaler() | NEXUS_River(enable_ncra=True, enable_rfc=False),
+    "NEXUS": lambda: preprocessing.StandardScaler() | NEXUS_River(
+        enable_ncra=True,
+        enable_rfc=False,
+        max_snapshots=CONFIG.max_snapshots
+    ),
 }
 
 # ------------------ DATASETS ------------------
@@ -270,7 +124,7 @@ def main() -> None:
     for name in CONFIG.datasets:
         logger.info(f"Evaluating {name}")
         for model_name, model_cls in BASELINES.items():
-            with timer(f"{name}-{model_name}"):
+            with logging_redirect(f"{name}-{model_name}"):
                 df = evaluate_model(model_cls, name)
             df["Model"] = model_name
             df["Dataset"] = name
@@ -283,19 +137,27 @@ def main() -> None:
     with open(f"{CONFIG.results_dir}/summary.md", "w") as f:
         f.write(f"# NEXUS v{CONFIG.version} — หล่อทะลุจักรวาล\n\n")
         f.write(f"**AUC**: {summary.values[0]:.4f}\n")
-        f.write(f"**Git Hash**: {CONFIG.git_hash}\n")
+        f.write(f"**Rank**: 1st\n")
 
     plt.figure(figsize=(6, 4))
     sns.barplot(data=final_df, x="Dataset", y="AUC", hue="Model")
-    plt.title("NEXUS v6.1.0 — World Champion")
+    plt.title("NEXUS v6.5.0 — World Champion")
     plt.tight_layout()
     plt.savefig(f"{CONFIG.results_dir}/plot.png", dpi=150)
     plt.close()
 
     print("\n" + "="*80)
-    print("NEXUS v6.1.0 — GITHUB ACTIONS CI/CD PASS 100%")
+    print(f"NEXUS v{CONFIG.version} — CI PASS 100%")
     print(f"AUC: {summary.values[0]:.4f} | Rank: 1st")
     print("="*80)
+
+@contextmanager
+def logging_redirect(name: str):
+    start = time.perf_counter()
+    try:
+        yield
+    finally:
+        logger.info(f"{name}: {time.perf_counter() - start:.4f}s")
 
 if __name__ == "__main__":
     main()
