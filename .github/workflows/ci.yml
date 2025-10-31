@@ -10,9 +10,11 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -29,10 +31,12 @@ jobs:
         run: |
           echo "=== DEBUG: ตรวจสอบโฟลเดอร์ results/ ==="
           if [ -d "results" ]; then
+            echo "โฟลเดอร์ results/ พบแล้ว!"
             ls -la results/
-            echo "จำนวนไฟล์: $(ls -1 results/ | wc -l)"
+            echo "จำนวนไฟล์: $(find results/ -type f | wc -l)"
           else
             echo "โฟลเดอร์ results/ ไม่พบ!"
+            exit 1
           fi
           echo "========================================"
 
